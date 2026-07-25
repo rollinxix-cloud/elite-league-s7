@@ -82,77 +82,115 @@
             </div>
         </header>
 
-        <!-- STANDINGS TABLE -->
-        <section class="theme-card rounded-xl overflow-hidden">
+        <!-- MAIN LAYOUT GRID: SPLIT INTO STANDINGS AND FIXTURES -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <div class="p-3 md:p-4 bg-black/50 border-b border-gray-700 flex justify-between items-center">
-                <h2 class="text-base md:text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    Live Standings
-                </h2>
+            <!-- LEFT/CENTER SIDES: STANDINGS TABLE (Takes 2 cols on big screens) -->
+            <div class="lg:col-span-2">
+                <section class="theme-card rounded-xl overflow-hidden">
+                    <div class="p-3 md:p-4 bg-black/50 border-b border-gray-700 flex justify-between items-center">
+                        <h2 class="text-base md:text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            Live Standings
+                        </h2>
+                    </div>
+
+                    <div class="w-full overflow-x-auto">
+                        <table class="w-full text-left whitespace-nowrap text-xs md:text-sm" id="league-table">
+                            <thead class="bg-black/60 text-gray-400 uppercase font-bold border-b border-gray-700">
+                                <tr>
+                                    <th class="px-2 py-3 text-center w-8">#</th>
+                                    <th class="px-2 py-3 text-left">Team / Player</th>
+                                    <th class="px-2 py-3 text-center" title="Matches Played">MP</th>
+                                    <th class="px-2 py-3 text-center text-green-400">W</th>
+                                    <th class="px-2 py-3 text-center text-yellow-400">D</th>
+                                    <th class="px-2 py-3 text-center text-red-400">L</th>
+                                    <th class="px-2 py-3 text-center hidden sm:table-cell" title="Goals For">GF</th>
+                                    <th class="px-2 py-3 text-center hidden sm:table-cell" title="Goals Against">GA</th>
+                                    <th class="px-2 py-3 text-center" title="Goal Difference">GD</th>
+                                    <th class="px-3 py-3 text-center text-[var(--text-title)] text-sm md:text-base">PTS</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800/60 font-medium">
+                                <script>
+                                    const zones = {
+                                        1: { class: "bg-green-900/20 text-green-400", bgClass: "bg-green-900/10" },
+                                        2: { class: "bg-green-900/10 text-green-500", bgClass: "bg-green-900/5" },
+                                        16: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
+                                        17: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
+                                        18: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" }
+                                    };
+
+                                    for (let i = 1; i <= 18; i++) {
+                                        let zone = zones[i] || { class: "text-gray-500", bgClass: "" };
+                                        document.write(`
+                                        <tr class="hover:bg-gray-800/60 transition duration-150 ${zone.bgClass}">
+                                            <td class="px-2 py-3 text-center font-bold ${zone.class}">${i}</td>
+                                            <td class="px-2 py-3 max-w-[120px] md:max-w-xs truncate edit-name text-white" contenteditable="false">Player ${i}</td>
+                                            <td class="px-2 py-3 text-center calc-mp text-gray-300">0</td>
+                                            <td class="px-2 py-3 text-center text-green-300 edit-w" contenteditable="false">0</td>
+                                            <td class="px-2 py-3 text-center text-yellow-300 edit-d" contenteditable="false">0</td>
+                                            <td class="px-2 py-3 text-center text-red-300 edit-l" contenteditable="false">0</td>
+                                            <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-gf" contenteditable="false">0</td>
+                                            <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-ga" contenteditable="false">0</td>
+                                            <td class="px-2 py-3 text-center calc-gd text-gray-300">0</td>
+                                            <td class="px-3 py-3 text-center font-bold text-white text-sm md:text-base calc-pts">0</td>
+                                        </tr>
+                                        `);
+                                    }
+                                </script>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
 
-            <div class="w-full overflow-x-auto">
-                <table class="w-full text-left whitespace-nowrap text-xs md:text-sm" id="league-table">
-                    <thead class="bg-black/60 text-gray-400 uppercase font-bold border-b border-gray-700">
-                        <tr>
-                            <th class="px-2 py-3 text-center w-8">#</th>
-                            <th class="px-2 py-3 text-left">Team / Player</th>
-                            <th class="px-2 py-3 text-center" title="Matches Played">MP</th>
-                            <th class="px-2 py-3 text-center text-green-400">W</th>
-                            <th class="px-2 py-3 text-center text-yellow-400">D</th>
-                            <th class="px-2 py-3 text-center text-red-400">L</th>
-                            <th class="px-2 py-3 text-center hidden sm:table-cell" title="Goals For">GF</th>
-                            <th class="px-2 py-3 text-center hidden sm:table-cell" title="Goals Against">GA</th>
-                            <th class="px-2 py-3 text-center" title="Goal Difference">GD</th>
-                            <th class="px-3 py-3 text-center text-[var(--text-title)] text-sm md:text-base">PTS</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-800/60 font-medium">
-                        
-                        <!-- 18 ROWS GENERATED VIA JS FOR CLEANLINESS & AUTO-CALC BINDINGS -->
-                        <script>
-                            const zones = {
-                                1: { class: "bg-green-900/20 text-green-400", bgClass: "bg-green-900/10" },
-                                2: { class: "bg-green-900/10 text-green-500", bgClass: "bg-green-900/5" },
-                                16: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
-                                17: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
-                                18: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" }
-                            };
+            <!-- RIGHT SIDE: MATCH FIXTURES MODULE -->
+            <div class="lg:col-span-1">
+                <section class="theme-card rounded-xl overflow-hidden flex flex-col h-full max-h-[85vh]">
+                    <div class="p-3 md:p-4 bg-black/50 border-b border-gray-700 flex justify-between items-center">
+                        <h2 class="text-base md:text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[var(--text-title)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Fixtures & Results
+                        </h2>
+                    </div>
 
-                            for (let i = 1; i <= 18; i++) {
-                                let zone = zones[i] || { class: "text-gray-500", bgClass: "" };
+                    <!-- Scrollable Fixtures Container -->
+                    <div class="p-4 space-y-3 overflow-y-auto flex-1 bg-black/20" id="fixtures-container">
+                        <!-- Sample Fixture Slots (You can edit player names inside index.html directly later) -->
+                        <script>
+                            for(let f = 1; f <= 10; f++) {
                                 document.write(`
-                                <tr class="hover:bg-gray-800/60 transition duration-150 ${zone.bgClass}">
-                                    <td class="px-2 py-3 text-center font-bold ${zone.class}">${i}</td>
-                                    
-                                    <!-- EDITABLE: PLAYER NAME (Locked by default) -->
-                                    <td class="px-2 py-3 max-w-[120px] md:max-w-xs truncate edit-name text-white" contenteditable="false">Player ${i}</td>
-                                    
-                                    <!-- CALCULATED: MATCHES PLAYED -->
-                                    <td class="px-2 py-3 text-center calc-mp text-gray-300">0</td>
-                                    
-                                    <!-- EDITABLE: WIN, DRAW, LOSS (Locked by default) -->
-                                    <td class="px-2 py-3 text-center text-green-300 edit-w" contenteditable="false">0</td>
-                                    <td class="px-2 py-3 text-center text-yellow-300 edit-d" contenteditable="false">0</td>
-                                    <td class="px-2 py-3 text-center text-red-300 edit-l" contenteditable="false">0</td>
-                                    
-                                    <!-- EDITABLE: GOALS FOR, GOALS AGAINST (Locked by default) -->
-                                    <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-gf" contenteditable="false">0</td>
-                                    <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-ga" contenteditable="false">0</td>
-                                    
-                                    <!-- CALCULATED: GOAL DIFFERENCE & POINTS -->
-                                    <td class="px-2 py-3 text-center calc-gd text-gray-300">0</td>
-                                    <td class="px-3 py-3 text-center font-bold text-white text-sm md:text-base calc-pts">0</td>
-                                </tr>
+                                <div class="p-3 bg-gray-900/60 rounded-lg border border-gray-800 flex flex-col gap-2">
+                                    <div class="flex justify-between text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                                        <span>MATCH #0${f}</span>
+                                        <span class="edit-status text-yellow-500" contenteditable="false">UPCOMING</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <!-- Home Team -->
+                                        <div class="flex-1 text-sm font-semibold truncate text-white edit-home-name" contenteditable="false">Player ${f}</div>
+                                        
+                                        <!-- Score Box Arena -->
+                                        <div class="flex items-center bg-black/40 rounded border border-gray-700 px-2 py-1 text-sm font-bold gap-1">
+                                            <span class="w-6 text-center text-green-400 edit-score-h" contenteditable="false">-</span>
+                                            <span class="text-gray-600">:</span>
+                                            <span class="w-6 text-center text-green-400 edit-score-a" contenteditable="false">-</span>
+                                        </div>
+                                        
+                                        <!-- Away Team -->
+                                        <div class="flex-1 text-right text-sm font-semibold truncate text-white edit-away-name" contenteditable="false">Player ${19 - f}</div>
+                                    </div>
+                                </div>
                                 `);
                             }
                         </script>
-                        
-                    </tbody>
-                </table>
+                    </div>
+                </section>
             </div>
-        </section>
+
+        </div>
         
     </div>
 
@@ -212,7 +250,6 @@
                 // Add event listeners to all editable numerical cells
                 [wCell, dCell, lCell, gfCell, gaCell].forEach(cell => {
                     cell.addEventListener('input', calculate);
-                    // Prevent non-numeric characters on paste
                     cell.addEventListener('keypress', function(e) {
                         if (isNaN(String.fromCharCode(e.which))) e.preventDefault();
                     });
@@ -247,8 +284,8 @@
                 adminPanel.classList.remove('hidden');
                 adminPanel.classList.add('flex');
                 
-                // Unlock layout editable access for table configurations
-                document.querySelectorAll('.edit-name, .edit-w, .edit-d, .edit-l, .edit-gf, .edit-ga').forEach(cell => {
+                // Unlock layout editable access for table AND fixture configurations
+                document.querySelectorAll('.edit-name, .edit-w, .edit-d, .edit-l, .edit-gf, .edit-ga, .edit-home-name, .edit-away-name, .edit-score-h, .edit-score-a, .edit-status').forEach(cell => {
                     cell.contentEditable = "true";
                 });
                 
@@ -273,7 +310,7 @@
             adminPanel.classList.remove('flex');
             adminPanel.classList.add('hidden');
             
-            document.querySelectorAll('.edit-name, .edit-w, .edit-d, .edit-l, .edit-gf, .edit-ga').forEach(cell => {
+            document.querySelectorAll('.edit-name, .edit-w, .edit-d, .edit-l, .edit-gf, .edit-ga, .edit-home-name, .edit-away-name, .edit-score-h, .edit-score-a, .edit-status').forEach(cell => {
                 cell.contentEditable = "false";
             });
 
@@ -292,7 +329,7 @@
             // Re-establish local functional variables post-generation
             adminPanel.classList.remove('hidden');
             adminPanel.classList.add('flex');
-            document.querySelectorAll('.edit-name, .edit-w, .edit-d, .edit-l, .edit-gf, .edit-ga').forEach(cell => {
+            document.querySelectorAll('.edit-name, .edit-w, .edit-d, .edit-l, .edit-gf, .edit-ga, .edit-home-name, .edit-away-name, .edit-score-h, .edit-score-a, .edit-status').forEach(cell => {
                 cell.contentEditable = "true";
             });
 
