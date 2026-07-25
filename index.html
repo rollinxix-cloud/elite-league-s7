@@ -71,13 +71,6 @@
             <h1 class="text-3xl md:text-5xl font-black uppercase tracking-widest main-title drop-shadow-md">
                 Elite League S7
             </h1>
-            <div class="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-300 uppercase tracking-wider bg-black/40 px-3 py-1 rounded-full border border-gray-600/50">
-                <span>18 Teams</span>
-                <span class="text-gray-500">•</span>
-                <span>PES Matches</span>
-                <span class="text-gray-500">•</span>
-                <span>12-Min Half</span>
-            </div>
         </header>
 
         <!-- MAIN LAYOUT GRID -->
@@ -172,7 +165,6 @@
                     <!-- Scrollable Container containing all 17 Matchdays -->
                     <div class="p-3 space-y-3 overflow-y-auto flex-1 bg-black/20" id="fixtures-root">
                         <script>
-                            // Berger Round Robin Scheduling Algorithm Parameters for 18 Teams
                             const totalTeams = 18;
                             let teams = Array.from({length: totalTeams}, (_, i) => i + 1);
 
@@ -183,7 +175,6 @@
                                     let home = teams[matchIdx];
                                     let away = teams[totalTeams - 1 - matchIdx];
                                     
-                                    // Alternating home/away fields cleanly
                                     if (round % 2 === 0) {
                                         let temp = home;
                                         home = away;
@@ -210,7 +201,6 @@
                                 }
                                 document.write(`</div>`);
                                 
-                                // Rotate teams elements keeping index 0 locked (Standard circle rotation method)
                                 teams.splice(1, 0, teams.pop());
                             }
                         </script>
@@ -243,7 +233,6 @@
     </button>
 
     <script>
-        // Switch between Matchday views cleanly via user select action
         function switchMatchday() {
             const selectedVal = document.getElementById('matchday-select').value;
             document.querySelectorAll('.matchday-group').forEach(group => {
@@ -313,7 +302,7 @@
                 });
                 adminPanel.scrollIntoView({ behavior: 'smooth' });
             } else {
-                errorContainer.classList.remove('hidden');
+                errorContainer.classList.add('hidden');
             }
         }
 
@@ -321,9 +310,7 @@
             if (event.key === 'Enter') submitAdminAuth();
         });
 
-        // Export and build clean output
         function exportHTML() {
-            // Force user selector view back to matchday 1 so the page structure saves in an organized state
             document.getElementById('matchday-select').value = "md-1";
             switchMatchday();
 
@@ -352,7 +339,7 @@
             });
 
             alert("File downloaded! Replace your current index.html and run your push.bat to deploy.");
-        }
+            }
     </script>
 </body>
 </html>
