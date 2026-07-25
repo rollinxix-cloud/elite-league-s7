@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ELITE LEAGUE S7</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        :root {
+            --text-title: #ccff00;
+            --text-main: #f3f4f6;
+            --bg-card: rgba(17, 24, 39, 0.85);
+            --border-color: rgba(55, 65, 81, 0.7);
+        }
+
+        /* eFootball / eSports Arena Background */
+        body {
+            background: linear-gradient(135deg, rgba(7, 11, 25, 0.95) 0%, rgba(13, 20, 38, 0.85) 100%), 
+                        url('https://images.unsplash.com/photo-1518605368461-1ee7c532066d?q=80&w=2070&auto=format&fit=crop') center center / cover fixed !important;
+            color: var(--text-main) !important;
+            -webkit-font-smoothing: antialiased;
+            backdrop-filter: blur(2px);
+        }
+
+        .theme-card {
+            background-color: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+        }
+        
+        .main-title {
+            color: var(--text-title) !important;
+            text-shadow: 0 0 15px rgba(204, 255, 0, 0.3);
+        }
+
+        /* Editable fields highlighting for Admin */
+        [contenteditable="true"]:focus {
+            background-color: rgba(59, 130, 246, 0.3);
+            outline: 1px solid #3b82f6;
+            border-radius: 4px;
+            color: #fff;
+        }
+        [contenteditable="true"] {
+            cursor: text;
+            border-bottom: 1px dashed rgba(255,255,255,0.2);
+        }
+        
+        ::-webkit-scrollbar { height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-card); }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+    </style>
+</head>
+<body class="p-2 md:p-6 font-sans">
+    
+    <div class="max-w-7xl mx-auto space-y-4 md:space-y-6">
+
+        <!-- ADMIN EXPORT BUTTON -->
+        <div id="admin-panel" class="flex justify-center mb-4">
+            <button onclick="exportHTML()" class="bg-blue-600 hover:bg-blue-500 border border-blue-400 text-white font-bold py-3 px-6 rounded-xl shadow-[0_0_15px_rgba(37,99,235,0.5)] transition duration-200 uppercase tracking-widest text-sm flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                💾 Save Changes (Export HTML)
+            </button>
+        </div>
+        
+        <!-- HEADER SECTION -->
+        <header class="text-center p-4 md:p-6 rounded-xl theme-card flex flex-col items-center justify-center gap-2">
+            <h1 class="text-3xl md:text-5xl font-black uppercase tracking-widest main-title drop-shadow-md">
+                Elite League S7
+            </h1>
+            <div class="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-300 uppercase tracking-wider bg-black/40 px-3 py-1 rounded-full border border-gray-600/50">
+                <span>18 Teams</span>
+                <span class="text-gray-500">•</span>
+                <span>PES Matches</span>
+                <span class="text-gray-500">•</span>
+                <span>12-Min Half</span>
+            </div>
+        </header>
+
+        <!-- STANDINGS TABLE -->
+        <section class="theme-card rounded-xl overflow-hidden">
+            
+            <div class="p-3 md:p-4 bg-black/50 border-b border-gray-700 flex justify-between items-center">
+                <h2 class="text-base md:text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    Live Standings
+                </h2>
+                <!-- Removed Swipe Text -->
+            </div>
+
+            <div class="w-full overflow-x-auto">
+                <table class="w-full text-left whitespace-nowrap text-xs md:text-sm" id="league-table">
+                    <thead class="bg-black/60 text-gray-400 uppercase font-bold border-b border-gray-700">
+                        <tr>
+                            <th class="px-2 py-3 text-center w-8">#</th>
+                            <th class="px-2 py-3 text-left">Team / Player</th>
+                            <th class="px-2 py-3 text-center" title="Matches Played">MP</th>
+                            <th class="px-2 py-3 text-center text-green-400">W</th>
+                            <th class="px-2 py-3 text-center text-yellow-400">D</th>
+                            <th class="px-2 py-3 text-center text-red-400">L</th>
+                            <th class="px-2 py-3 text-center hidden sm:table-cell" title="Goals For">GF</th>
+                            <th class="px-2 py-3 text-center hidden sm:table-cell" title="Goals Against">GA</th>
+                            <th class="px-2 py-3 text-center" title="Goal Difference">GD</th>
+                            <th class="px-3 py-3 text-center text-[var(--text-title)] text-sm md:text-base">PTS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800/60 font-medium">
+                        
+                        <!-- 18 ROWS GENERATED VIA JS FOR CLEANLINESS & AUTO-CALC BINDINGS -->
+                        <script>
+                            const zones = {
+                                1: { class: "bg-green-900/20 text-green-400", bgClass: "bg-green-900/10" },
+                                2: { class: "bg-green-900/10 text-green-500", bgClass: "bg-green-900/5" },
+                                16: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
+                                17: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
+                                18: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" }
+                            };
+
+                            for (let i = 1; i <= 18; i++) {
+                                let zone = zones[i] || { class: "text-gray-500", bgClass: "" };
+                                document.write(`
+                                <tr class="hover:bg-gray-800/60 transition duration-150 ${zone.bgClass}">
+                                    <td class="px-2 py-3 text-center font-bold ${zone.class}">${i}</td>
+                                    
+                                    <!-- EDITABLE: PLAYER NAME -->
+                                    <td class="px-2 py-3 max-w-[120px] md:max-w-xs truncate edit-name text-white" contenteditable="true">Player ${i}</td>
+                                    
+                                    <!-- CALCULATED: MATCHES PLAYED -->
+                                    <td class="px-2 py-3 text-center calc-mp text-gray-300">0</td>
+                                    
+                                    <!-- EDITABLE: WIN, DRAW, LOSS -->
+                                    <td class="px-2 py-3 text-center text-green-300 edit-w" contenteditable="true">0</td>
+                                    <td class="px-2 py-3 text-center text-yellow-300 edit-d" contenteditable="true">0</td>
+                                    <td class="px-2 py-3 text-center text-red-300 edit-l" contenteditable="true">0</td>
+                                    
+                                    <!-- EDITABLE: GOALS FOR, GOALS AGAINST -->
+                                    <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-gf" contenteditable="true">0</td>
+                                    <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-ga" contenteditable="true">0</td>
+                                    
+                                    <!-- CALCULATED: GOAL DIFFERENCE & POINTS -->
+                                    <td class="px-2 py-3 text-center calc-gd text-gray-300">0</td>
+                                    <td class="px-3 py-3 text-center font-bold text-white text-sm md:text-base calc-pts">0</td>
+                                </tr>
+                                `);
+                            }
+                        </script>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+    </div>
+
+    <!-- AUTO-CALCULATOR & EXPORT LOGIC -->
+    <script>
+        // 1. Auto-Calculate Points & Stats based on Admin Input
+        function bindAutoCalc() {
+            document.querySelectorAll('#league-table tbody tr').forEach(row => {
+                const wCell = row.querySelector('.edit-w');
+                const dCell = row.querySelector('.edit-d');
+                const lCell = row.querySelector('.edit-l');
+                const gfCell = row.querySelector('.edit-gf');
+                const gaCell = row.querySelector('.edit-ga');
+                const mpCell = row.querySelector('.calc-mp');
+                const gdCell = row.querySelector('.calc-gd');
+                const ptsCell = row.querySelector('.calc-pts');
+
+                const calculate = () => {
+                    const w = parseInt(wCell.innerText) || 0;
+                    const d = parseInt(dCell.innerText) || 0;
+                    const l = parseInt(lCell.innerText) || 0;
+                    const gf = parseInt(gfCell.innerText) || 0;
+                    const ga = parseInt(gaCell.innerText) || 0;
+
+                    // Update Math
+                    mpCell.innerText = w + d + l;
+                    
+                    const gd = gf - ga;
+                    gdCell.innerText = gd > 0 ? "+" + gd : gd;
+                    
+                    ptsCell.innerText = (w * 3) + (d * 1);
+                };
+
+                // Add event listeners to all editable numerical cells
+                [wCell, dCell, lCell, gfCell, gaCell].forEach(cell => {
+                    cell.addEventListener('input', calculate);
+                    // Prevent non-numeric characters on paste
+                    cell.addEventListener('keypress', function(e) {
+                        if (isNaN(String.fromCharCode(e.which))) e.preventDefault();
+                    });
+                });
+            });
+        }
+        
+        // Initialize math bindings on load
+        document.addEventListener('DOMContentLoaded', bindAutoCalc);
+
+        // 2. Export Updated HTML for Deployment
+        function exportHTML() {
+            // Remove export button temporarily so it doesn't look weird on the final live site
+            // (You can remove this block if you want the button to stay visible forever)
+            const adminPanel = document.getElementById('admin-panel');
+            adminPanel.style.display = 'none';
+
+            // Get full HTML
+            const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            
+            // Create Download Blob
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'index.html'; // Save as index.html
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Bring button back after download triggers
+            adminPanel.style.display = 'flex';
+            alert("File downloaded! Replace your current index.html and run your push.bat to deploy.");
+        }
+    </script>
+</body>
+</html>
