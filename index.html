@@ -216,7 +216,7 @@
                 tableHtml += `
                 <tr class="hover:bg-gray-800/60 transition duration-150 ${zone.bgClass}">
                     <td class="px-2 py-3 text-center font-bold ${zone.class}">${i}</td>
-                    <td class="px-2 py-3 max-w-[120px] md:max-w-xs truncate edit-name text-white" contenteditable="false">${playerName}</td>
+                    <td class="px-2 py-3 max-w-[120px] md:max-w-xs truncate edit-name text-white" contenteditable="false" data-player-id="${i}">${playerName}</td>
                     <td class="px-2 py-3 text-center calc-mp text-gray-300">0</td>
                     <td class="px-2 py-3 text-center text-green-300 edit-w" contenteditable="false">0</td>
                     <td class="px-2 py-3 text-center text-yellow-300 edit-d" contenteditable="false">0</td>
@@ -251,13 +251,13 @@
                             <span class="edit-status text-yellow-500" contenteditable="false">UPCOMING</span>
                         </div>
                         <div class="flex items-center justify-between gap-2">
-                            <div class="flex-1 text-xs font-semibold truncate text-white edit-home-name" contenteditable="false">Player ${home}</div>
+                            <div class="flex-1 text-xs font-semibold truncate text-white edit-home-name" contenteditable="false" data-team-id="${home}">${registeredPlayers[home - 1]}</div>
                             <div class="flex items-center bg-black/40 rounded border border-gray-700 px-2 py-1 text-xs font-bold gap-1">
                                 <span class="w-5 text-center text-green-400 edit-score-h" contenteditable="false">-</span>
                                 <span class="text-gray-600">:</span>
                                 <span class="w-5 text-center text-green-400 edit-score-a" contenteditable="false">-</span>
                             </div>
-                            <div class="flex-1 text-right text-xs font-semibold truncate text-white edit-away-name" contenteditable="false">Player ${away}</div>
+                            <div class="flex-1 text-right text-xs font-semibold truncate text-white edit-away-name" contenteditable="false" data-team-id="${away}">${registeredPlayers[away - 1]}</div>
                         </div>
                     </div>`;
                 }
@@ -265,6 +265,18 @@
                 teams.splice(1, 0, teams.pop());
             }
             fixturesRoot.innerHTML = fixturesHtml;
+        }
+
+        function bindNameSync() {
+            document.querySelectorAll('#league-table-body .edit-name').forEach(cell => {
+                const playerId = cell.getAttribute('data-player-id');
+                cell.addEventListener('input', () => {
+                    const newName = cell.innerText.trim() || `Player ${playerId}`;
+                    document.querySelectorAll(`[data-team-id="${playerId}"]`).forEach(fixtureCell => {
+                        fixtureCell.innerText = newName;
+                    });
+                });
+            });
         }
 
         function bindAutoCalc() {
@@ -305,6 +317,7 @@
                 setupInitialLayout();
                 document.body.classList.add('layout-initialized');
             }
+            bindNameSync();
             bindAutoCalc();
         });
 
