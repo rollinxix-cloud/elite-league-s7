@@ -102,8 +102,34 @@
                                     <th class="px-3 py-3 text-center text-[var(--text-title)] text-sm md:text-base">PTS</th>
                                 </tr>
                             </thead>
-                            <tbody id="league-table-body" class="divide-y divide-gray-800/60 font-medium">
-                                <!-- Managed dynamically by structural initialization core -->
+                            <tbody class="divide-y divide-gray-800/60 font-medium">
+                                <script>
+                                    const zones = {
+                                        1: { class: "bg-green-900/20 text-green-400", bgClass: "bg-green-900/10" },
+                                        2: { class: "bg-green-900/10 text-green-500", bgClass: "bg-green-900/5" },
+                                        16: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
+                                        17: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
+                                        18: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" }
+                                    };
+
+                                    for (let i = 1; i <= 18; i++) {
+                                        let zone = zones[i] || { class: "text-gray-500", bgClass: "" };
+                                        document.write(`
+                                        <tr class="hover:bg-gray-800/60 transition duration-150 ${zone.bgClass}">
+                                            <td class="px-2 py-3 text-center font-bold ${zone.class}">${i}</td>
+                                            <td class="px-2 py-3 max-w-[120px] md:max-w-xs truncate edit-name text-white" contenteditable="false">Player ${i}</td>
+                                            <td class="px-2 py-3 text-center calc-mp text-gray-300">0</td>
+                                            <td class="px-2 py-3 text-center text-green-300 edit-w" contenteditable="false">0</td>
+                                            <td class="px-2 py-3 text-center text-yellow-300 edit-d" contenteditable="false">0</td>
+                                            <td class="px-2 py-3 text-center text-red-300 edit-l" contenteditable="false">0</td>
+                                            <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-gf" contenteditable="false">0</td>
+                                            <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-ga" contenteditable="false">0</td>
+                                            <td class="px-2 py-3 text-center calc-gd text-gray-300">0</td>
+                                            <td class="px-3 py-3 text-center font-bold text-white text-sm md:text-base calc-pts">0</td>
+                                        </tr>
+                                        `);
+                                    }
+                                </script>
                             </tbody>
                         </table>
                     </div>
@@ -127,30 +153,57 @@
                         <div>
                             <label for="matchday-select" class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Select Schedule Stage</label>
                             <select id="matchday-select" onchange="switchMatchday()" class="w-full bg-gray-950 border border-gray-700 text-white rounded-lg p-2 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                <option value="md-1">MATCHDAY 1 OF 17</option>
-                                <option value="md-2">MATCHDAY 2 OF 17</option>
-                                <option value="md-3">MATCHDAY 3 OF 17</option>
-                                <option value="md-4">MATCHDAY 4 OF 17</option>
-                                <option value="md-5">MATCHDAY 5 OF 17</option>
-                                <option value="md-6">MATCHDAY 6 OF 17</option>
-                                <option value="md-7">MATCHDAY 7 OF 17</option>
-                                <option value="md-8">MATCHDAY 8 OF 17</option>
-                                <option value="md-9">MATCHDAY 9 OF 17</option>
-                                <option value="md-10">MATCHDAY 10 OF 17</option>
-                                <option value="md-11">MATCHDAY 11 OF 17</option>
-                                <option value="md-12">MATCHDAY 12 OF 17</option>
-                                <option value="md-13">MATCHDAY 13 OF 17</option>
-                                <option value="md-14">MATCHDAY 14 OF 17</option>
-                                <option value="md-15">MATCHDAY 15 OF 17</option>
-                                <option value="md-16">MATCHDAY 16 OF 17</option>
-                                <option value="md-17">MATCHDAY 17 OF 17</option>
+                                <script>
+                                    for(let m = 1; m <= 17; m++) {
+                                        document.write(`<option value="md-${m}">MATCHDAY ${m} OF 17</option>`);
+                                    }
+                                </script>
                             </select>
                         </div>
                     </div>
 
                     <!-- Scrollable Container containing all 17 Matchdays -->
                     <div class="p-3 space-y-3 overflow-y-auto flex-1 bg-black/20" id="fixtures-root">
-                        <!-- Managed dynamically by structural initialization core -->
+                        <script>
+                            const totalTeams = 18;
+                            let teams = Array.from({length: totalTeams}, (_, i) => i + 1);
+
+                            for (let round = 1; round <= 17; round++) {
+                                document.write(`<div id="md-${round}" class="matchday-group ${round === 1 ? '' : 'hidden'} space-y-3">`);
+                                
+                                for (let matchIdx = 0; matchIdx < totalTeams / 2; matchIdx++) {
+                                    let home = teams[matchIdx];
+                                    let away = teams[totalTeams - 1 - matchIdx];
+                                    
+                                    if (round % 2 === 0) {
+                                        let temp = home;
+                                        home = away;
+                                        away = temp;
+                                    }
+
+                                    document.write(`
+                                    <div class="p-3 bg-gray-900/60 rounded-lg border border-gray-800 flex flex-col gap-1.5">
+                                        <div class="flex justify-between text-[9px] text-gray-500 font-bold uppercase tracking-wider">
+                                            <span>ROUND ${round} • MATCH ${matchIdx + 1}</span>
+                                            <span class="edit-status text-yellow-500" contenteditable="false">UPCOMING</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="flex-1 text-xs font-semibold truncate text-white edit-home-name" contenteditable="false">Player ${home}</div>
+                                            <div class="flex items-center bg-black/40 rounded border border-gray-700 px-2 py-1 text-xs font-bold gap-1">
+                                                <span class="w-5 text-center text-green-400 edit-score-h" contenteditable="false">-</span>
+                                                <span class="text-gray-600">:</span>
+                                                <span class="w-5 text-center text-green-400 edit-score-a" contenteditable="false">-</span>
+                                            </div>
+                                            <div class="flex-1 text-right text-xs font-semibold truncate text-white edit-away-name" contenteditable="false">Player ${away}</div>
+                                        </div>
+                                    </div>
+                                    `);
+                                }
+                                document.write(`</div>`);
+                                
+                                teams.splice(1, 0, teams.pop());
+                            }
+                        </script>
                     </div>
                 </section>
             </div>
@@ -172,7 +225,7 @@
         </div>
     </div>
 
-    <!-- DISCREET ADMIN PANEL TRIGGER BUTTON -->
+    <!-- DISCREET ADMIN PANEL TRIGGER BUTTON (FIXED FOR LAPTOP/DESKTOP LAYER CONFLICTS) -->
     <button onclick="openAdminAuthModal()" class="fixed bottom-5 right-5 bg-black/40 hover:bg-black/80 text-gray-500 hover:text-[var(--text-title)] border border-gray-800 hover:border-gray-600 transition-all p-3 rounded-xl z-50 cursor-pointer shadow-lg" title="Workspace Access">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -185,90 +238,11 @@
             document.querySelectorAll('.matchday-group').forEach(group => {
                 group.classList.add('hidden');
             });
-            const activeGroup = document.getElementById(selectedVal);
-            if (activeGroup) activeGroup.classList.remove('hidden');
-        }
-
-        function setupInitialLayout() {
-            const tbody = document.getElementById('league-table-body');
-            const fixturesRoot = document.getElementById('fixtures-root');
-            
-            const zones = {
-                1: { class: "bg-green-900/20 text-green-400", bgClass: "bg-green-900/10" },
-                2: { class: "bg-green-900/10 text-green-500", bgClass: "bg-green-900/5" },
-                16: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
-                17: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
-                18: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" }
-            };
-
-            const registeredPlayers = [
-                "Namsang Subba", "बसन्त खड्का", "Siv Sunar", "Binaya Shrestha",
-                "Ashman Titung", "Hab II", "Roshan B. Magar", "Subash Tamang",
-                "Player 9", "Player 10", "Player 11", "Player 12",
-                "Player 13", "Player 14", "Player 15", "Player 16",
-                "Player 17", "Player 18"
-            ];
-
-            let tableHtml = '';
-            for (let i = 1; i <= 18; i++) {
-                let zone = zones[i] || { class: "text-gray-500", bgClass: "" };
-                let playerName = registeredPlayers[i - 1];
-                tableHtml += `
-                <tr class="hover:bg-gray-800/60 transition duration-150 ${zone.bgClass}">
-                    <td class="px-2 py-3 text-center font-bold ${zone.class}">${i}</td>
-                    <td class="px-2 py-3 max-w-[120px] md:max-w-xs truncate edit-name text-white" contenteditable="false">${playerName}</td>
-                    <td class="px-2 py-3 text-center calc-mp text-gray-300">0</td>
-                    <td class="px-2 py-3 text-center text-green-300 edit-w" contenteditable="false">0</td>
-                    <td class="px-2 py-3 text-center text-yellow-300 edit-d" contenteditable="false">0</td>
-                    <td class="px-2 py-3 text-center text-red-300 edit-l" contenteditable="false">0</td>
-                    <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-gf" contenteditable="false">0</td>
-                    <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-ga" contenteditable="false">0</td>
-                    <td class="px-2 py-3 text-center calc-gd text-gray-300">0</td>
-                    <td class="px-3 py-3 text-center font-bold text-white text-sm md:text-base calc-pts">0</td>
-                </tr>`;
-            }
-            tbody.innerHTML = tableHtml;
-
-            const totalTeams = 18;
-            let teams = Array.from({length: totalTeams}, (_, i) => i + 1);
-            let fixturesHtml = '';
-
-            for (let round = 1; round <= 17; round++) {
-                fixturesHtml += `<div id="md-${round}" class="matchday-group ${round === 1 ? '' : 'hidden'} space-y-3">`;
-                
-                for (let matchIdx = 0; matchIdx < totalTeams / 2; matchIdx++) {
-                    let home = teams[matchIdx];
-                    let away = teams[totalTeams - 1 - matchIdx];
-                    
-                    if (round % 2 === 0) {
-                        let temp = home; home = away; away = temp;
-                    }
-
-                    fixturesHtml += `
-                    <div class="p-3 bg-gray-900/60 rounded-lg border border-gray-800 flex flex-col gap-1.5">
-                        <div class="flex justify-between text-[9px] text-gray-500 font-bold uppercase tracking-wider">
-                            <span>ROUND ${round} • MATCH ${matchIdx + 1}</span>
-                            <span class="edit-status text-yellow-500" contenteditable="false">UPCOMING</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-2">
-                            <div class="flex-1 text-xs font-semibold truncate text-white edit-home-name" contenteditable="false">Player ${home}</div>
-                            <div class="flex items-center bg-black/40 rounded border border-gray-700 px-2 py-1 text-xs font-bold gap-1">
-                                <span class="w-5 text-center text-green-400 edit-score-h" contenteditable="false">-</span>
-                                <span class="text-gray-600">:</span>
-                                <span class="w-5 text-center text-green-400 edit-score-a" contenteditable="false">-</span>
-                            </div>
-                            <div class="flex-1 text-right text-xs font-semibold truncate text-white edit-away-name" contenteditable="false">Player ${away}</div>
-                        </div>
-                    </div>`;
-                }
-                fixturesHtml += `</div>`;
-                teams.splice(1, 0, teams.pop());
-            }
-            fixturesRoot.innerHTML = fixturesHtml;
+            document.getElementById(selectedVal).classList.remove('hidden');
         }
 
         function bindAutoCalc() {
-            document.querySelectorAll('#league-table-body tr').forEach(row => {
+            document.querySelectorAll('#league-table tbody tr').forEach(row => {
                 const wCell = row.querySelector('.edit-w');
                 const dCell = row.querySelector('.edit-d');
                 const lCell = row.querySelector('.edit-l');
@@ -300,13 +274,7 @@
             });
         }
         
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!document.body.classList.contains('layout-initialized')) {
-                setupInitialLayout();
-                document.body.classList.add('layout-initialized');
-            }
-            bindAutoCalc();
-        });
+        document.addEventListener('DOMContentLoaded', bindAutoCalc);
 
         function openAdminAuthModal() {
             document.getElementById('adminAuthModal').classList.remove('hidden');
@@ -370,7 +338,7 @@
                 cell.contentEditable = "true";
             });
 
-            alert("File downloaded successfully! Run push.bat to deploy.");
+            alert("File downloaded! Replace your current index.html and run your push.bat to deploy.");
         }
     </script>
 </body>
