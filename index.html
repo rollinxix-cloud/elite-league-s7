@@ -2697,12 +2697,6 @@
     // 1. Admin Access Control Engine
     let isAdmin = false;
 
-    // Defining multiple names so it hits your HTML button's exact click trigger
-    function toggleAdmin() { handleAdminCode(); }
-    function checkAdmin() { handleAdminCode(); }
-    function unlockAdmin() { handleAdminCode(); }
-    function toggleAdminMode() { handleAdminCode(); }
-
     function handleAdminCode() {
         // Asks for password. Press OK to bypass or type your password
         const pass = prompt("Enter Admin Password to unlock editing:");
@@ -2716,7 +2710,6 @@
         editables.forEach(el => {
             el.setAttribute('contenteditable', isAdmin ? 'true' : 'false');
             if (isAdmin) {
-                // Temporary visual indicator so you know which boxes you can type in
                 el.classList.add('bg-gray-700/40', 'ring-1', 'ring-yellow-500/30'); 
             } else {
                 el.classList.remove('bg-gray-700/40', 'ring-1', 'ring-yellow-500/30');
@@ -2725,6 +2718,16 @@
 
         alert(isAdmin ? "ADMIN ACCESS GRANTED: Click any score in the fixtures matrix to update it!" : "ADMIN ACCESS LOCKED.");
     }
+
+    // Map every single possible template function name to our admin trigger
+    window.toggleAdmin = handleAdminCode;
+    window.checkAdmin = handleAdminCode;
+    window.unlockAdmin = handleAdminCode;
+    window.toggleAdminMode = handleAdminCode;
+    window.checkCode = handleAdminCode;
+    window.adminLogin = handleAdminCode;
+    window.verifyAdmin = handleAdminCode;
+    window.login = handleAdminCode;
 
     // 2. Switch between Matchdays inside the UI view
     function switchMatchday() {
@@ -2886,9 +2889,34 @@
         });
     }
 
+    // Force-hijack any button or icon on the page that acts as a lock/admin portal
+    function hijackLockButtons() {
+        document.querySelectorAll('*').forEach(el => {
+            const id = (el.id || '').toLowerCase();
+            const className = (typeof el.className === 'string' ? el.className : '').toLowerCase();
+            const onclickAttr = el.getAttribute('onclick') || '';
+            
+            if (id.includes('lock') || id.includes('admin') || id.includes('login') ||
+                className.includes('lock') || className.includes('admin') ||
+                onclickAttr.includes('admin') || onclickAttr.includes('lock')) {
+                
+                // Remove existing inline onclick attributes to prevent conflict errors
+                el.removeAttribute('onclick');
+                
+                // Force-bind our working engine directly to the element click handler
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAdminCode();
+                });
+            }
+        });
+    }
+
     // Initialize layout construction and calculation updates on load
     document.addEventListener('DOMContentLoaded', () => {
         updateStandingsEngine();
+        hijackLockButtons();
 
         // Listen for live input anywhere inside the fixtures grid area
         const fixturesRoot = document.getElementById('fixtures-root') || document.body;
