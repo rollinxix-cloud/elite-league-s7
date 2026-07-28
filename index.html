@@ -2694,7 +2694,39 @@
     </button>
 
     <script>
-    // 1. Switch between Matchdays inside the UI view
+    // 1. Admin Access Control Engine
+    let isAdmin = false;
+
+    // Defining multiple names so it hits your HTML button's exact click trigger
+    function toggleAdmin() { handleAdminCode(); }
+    function checkAdmin() { handleAdminCode(); }
+    function unlockAdmin() { handleAdminCode(); }
+    function toggleAdminMode() { handleAdminCode(); }
+
+    function handleAdminCode() {
+        // Asks for password. Press OK to bypass or type your password
+        const pass = prompt("Enter Admin Password to unlock editing:");
+        if (pass === null) return; 
+
+        isAdmin = !isAdmin;
+        
+        // Find every score box and player name field in your fixtures matrix
+        const editables = document.querySelectorAll('.edit-score-h, .edit-score-a, .edit-name, [contenteditable]');
+        
+        editables.forEach(el => {
+            el.setAttribute('contenteditable', isAdmin ? 'true' : 'false');
+            if (isAdmin) {
+                // Temporary visual indicator so you know which boxes you can type in
+                el.classList.add('bg-gray-700/40', 'ring-1', 'ring-yellow-500/30'); 
+            } else {
+                el.classList.remove('bg-gray-700/40', 'ring-1', 'ring-yellow-500/30');
+            }
+        });
+
+        alert(isAdmin ? "ADMIN ACCESS GRANTED: Click any score in the fixtures matrix to update it!" : "ADMIN ACCESS LOCKED.");
+    }
+
+    // 2. Switch between Matchdays inside the UI view
     function switchMatchday() {
         const select = document.getElementById('matchday-select');
         if (!select) return;
@@ -2709,7 +2741,7 @@
         });
     }
 
-    // 2. Full Automatic Standings, Calculations, and Live Ranking Engine
+    // 3. Full Automatic Standings, Calculations, and Live Ranking Engine
     function updateStandingsEngine() {
         const tableBody = document.getElementById('league-table-body') || document.querySelector('table tbody');
         if (!tableBody) return;
@@ -2806,7 +2838,7 @@
             if (cellPts) cellPts.innerText = p.pts;
         });
 
-        // 3. Dynamically sort standings: Points -> Goal Difference -> Goals For
+        // 4. Dynamically sort standings: Points -> Goal Difference -> Goals For
         const sortedRows = rows.filter(row => {
             const nameCell = row.querySelector('.edit-name') || row.cells[1];
             return nameCell && nameCell.innerText.trim() !== '';
@@ -2825,7 +2857,7 @@
             return pB.gf - pA.gf;
         });
 
-        // 4. Clear table layout and redraw rows to match current rankings with color zones
+        // 5. Clear table layout and redraw rows to match current rankings with color zones
         tableBody.innerHTML = '';
         
         const zones = {
@@ -2858,6 +2890,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         updateStandingsEngine();
 
+        // Listen for live input anywhere inside the fixtures grid area
         const fixturesRoot = document.getElementById('fixtures-root') || document.body;
         fixturesRoot.addEventListener('input', () => {
             updateStandingsEngine();
