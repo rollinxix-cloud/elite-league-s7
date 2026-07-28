@@ -2694,191 +2694,212 @@
     </button>
 
     <script>
-    // 1. Switch between Matchdays inside the UI view
-    function switchMatchday() {
-        const select = document.getElementById('matchday-select');
-        if (!select) return;
-        const targetId = select.value;
-        
-        document.querySelectorAll('.matchday-group, [id^="md-"]').forEach(group => {
-            if (group.id === targetId) {
-                group.classList.remove('hidden');
-            } else {
+        function switchMatchday() {
+            const selectedVal = document.getElementById('matchday-select').value;
+            document.querySelectorAll('.matchday-group').forEach(group => {
                 group.classList.add('hidden');
-            }
-        });
-    }
-
-    // 2. Full Automatic Standings, Calculations, and Live Ranking Engine
-    function updateStandingsEngine() {
-        const tableBody = document.getElementById('league-table-body') || document.querySelector('table tbody');
-        if (!tableBody) return;
-
-        const rows = Array.from(tableBody.querySelectorAll('tr'));
-        const players = {};
-
-        // Extract player structures live from your hardcoded HTML rows
-        rows.forEach(row => {
-            const nameCell = row.querySelector('.edit-name') || row.cells[1];
-            if (!nameCell) return;
-            const name = nameCell.innerText.trim();
-            if (!name) return;
-
-            players[name] = {
-                name: name,
-                mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0,
-                rowElement: row
-            };
-        });
-
-        // Scan all fixture cards across all matchdays
-        const matchCards = document.querySelectorAll('.matchday-group > div, [id^="md-"] > div');
-        
-        matchCards.forEach(card => {
-            const homeNameEl = card.querySelector('.edit-home-name');
-            const awayNameEl = card.querySelector('.edit-away-name');
-            const homeScoreEl = card.querySelector('.edit-score-h');
-            const awayScoreEl = card.querySelector('.edit-score-a');
-
-            if (!homeNameEl || !awayNameEl || !homeScoreEl || !awayScoreEl) return;
-
-            const homeName = homeNameEl.innerText.trim();
-            const awayName = awayNameEl.innerText.trim();
-            
-            const homeScoreRaw = homeScoreEl.innerText.trim();
-            const awayScoreRaw = awayScoreEl.innerText.trim();
-
-            if (homeScoreRaw === '-' || awayScoreRaw === '-' || homeScoreRaw === '' || awayScoreRaw === '') return;
-            
-            const hScore = parseInt(homeScoreRaw);
-            const aScore = parseInt(awayScoreRaw);
-            
-            if (isNaN(hScore) || isNaN(aScore)) return;
-
-            if (!players[homeName]) players[homeName] = { name: homeName, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
-            if (!players[awayName]) players[awayName] = { name: awayName, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
-
-            players[homeName].mp += 1;
-            players[awayName].mp += 1;
-            players[homeName].gf += hScore;
-            players[homeName].ga += aScore;
-            players[awayName].gf += aScore;
-            players[awayName].ga += hScore;
-
-            if (hScore > aScore) {
-                players[homeName].w += 1;
-                players[homeName].pts += 3;
-                players[awayName].l += 1;
-            } else if (hScore < aScore) {
-                players[awayName].w += 1;
-                players[awayName].pts += 3;
-                players[homeName].l += 1;
-            } else {
-                players[homeName].d += 1;
-                players[homeName].pts += 1;
-                players[awayName].d += 1;
-                players[awayName].pts += 1;
-            }
-        });
-
-        // Inject computed numbers back into row cells safely
-        Object.values(players).forEach(p => {
-            if (!p.rowElement) return;
-            
-            p.gd = p.gf - p.ga;
-            
-            const cellMp = p.rowElement.querySelector('.calc-mp') || p.rowElement.cells[2];
-            const cellW = p.rowElement.querySelector('.edit-w') || p.rowElement.cells[3];
-            const cellD = p.rowElement.querySelector('.edit-d') || p.rowElement.cells[4];
-            const cellL = p.rowElement.querySelector('.edit-l') || p.rowElement.cells[5];
-            const cellGf = p.rowElement.querySelector('.edit-gf') || p.rowElement.cells[6];
-            const cellGa = p.rowElement.querySelector('.edit-ga') || p.rowElement.cells[7];
-            const cellGd = p.rowElement.querySelector('.calc-gd') || p.rowElement.cells[8];
-            const cellPts = p.rowElement.querySelector('.calc-pts') || p.rowElement.cells[9];
-
-            if (cellMp) cellMp.innerText = p.mp;
-            if (cellW) cellW.innerText = p.w;
-            if (cellD) cellD.innerText = p.d;
-            if (cellL) cellL.innerText = p.l;
-            if (cellGf) cellGf.innerText = p.gf;
-            if (cellGa) cellGa.innerText = p.ga;
-            if (cellGd) cellGd.innerText = p.gd >= 0 ? `+${p.gd}` : p.gd;
-            if (cellPts) cellPts.innerText = p.pts;
-        });
-
-        // 3. Dynamically sort standings: Points -> Goal Difference -> Goals For
-        const sortedRows = rows.filter(row => {
-            const nameCell = row.querySelector('.edit-name') || row.cells[1];
-            return nameCell && nameCell.innerText.trim() !== '';
-        }).sort((a, b) => {
-            const nameA = (a.querySelector('.edit-name') || a.cells[1]).innerText.trim();
-            const nameB = (b.querySelector('.edit-name') || b.cells[1]).innerText.trim();
-            
-            const pA = players[nameA];
-            const pB = players[nameB];
-
-            if (!pA) return 1;
-            if (!pB) return -1;
-
-            if (pB.pts !== pA.pts) return pB.pts - pA.pts;
-            if (pB.gd !== pA.gd) return pB.gd - pA.gd;
-            return pB.gf - pA.gf;
-        });
-
-        // 4. Clear table layout and redraw rows to match current rankings with color zones
-        tableBody.innerHTML = '';
-        
-        const zones = {
-            1: { class: "bg-green-900/20 text-green-400", bgClass: "bg-green-900/10" },
-            2: { class: "bg-green-900/10 text-green-500", bgClass: "bg-green-900/5" },
-            16: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
-            17: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
-            18: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" }
-        };
-
-        sortedRows.forEach((row, index) => {
-            const rank = index + 1;
-            const rankCell = row.cells[0];
-            if (rankCell) rankCell.innerText = rank;
-
-            row.className = "hover:bg-gray-800/60 transition duration-150";
-            if (rankCell) rankCell.className = "px-2 py-3 text-center font-bold text-gray-500";
-
-            const zone = zones[rank];
-            if (zone) {
-                row.className = `hover:bg-gray-800/60 transition duration-150 ${zone.bgClass}`;
-                if (rankCell) rankCell.className = `px-2 py-3 text-center font-bold ${zone.class}`;
-            }
-
-            tableBody.appendChild(row);
-        });
-    }
-
-    // Initialize layout construction and calculation updates on load
-    document.addEventListener('DOMContentLoaded', () => {
-        updateStandingsEngine();
-
-        const fixturesRoot = document.getElementById('fixtures-root') || document.body;
-        fixturesRoot.addEventListener('input', () => {
-            updateStandingsEngine();
-        });
-    });
-
-    // HTML Export Mechanism
-    function exportHTML() {
-        if (document.activeElement) {
-            document.activeElement.blur();
+            });
+            const activeGroup = document.getElementById(selectedVal);
+            if (activeGroup) activeGroup.classList.remove('hidden');
         }
-        const fullContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
-        const blob = new Blob([fullContent], { type: 'text/html' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'index.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-</script>
-</body>
-</html>
 
+        function setupInitialLayout() {
+            const tbody = document.getElementById('league-table-body');
+            const fixturesRoot = document.getElementById('fixtures-root');
+            
+            const zones = {
+                1: { class: "bg-green-900/20 text-green-400", bgClass: "bg-green-900/10" },
+                2: { class: "bg-green-900/10 text-green-500", bgClass: "bg-green-900/5" },
+                16: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
+                17: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" },
+                18: { class: "bg-red-900/20 text-red-500", bgClass: "bg-red-900/10" }
+            };
+
+            const registeredPlayers = [
+                "Namsang Subba", "बसन्त खड्का", "Siv Sunar", "Binaya Shrestha",
+                "Ashman Titung", "Hab II", "Roshan B. Magar", "Subash Tamang",
+                "Player 9", "Player 10", "Player 11", "Player 12",
+                "Player 13", "Player 14", "Player 15", "Player 16",
+                "Player 17", "Player 18"
+            ];
+
+            let tableHtml = '';
+            for (let i = 1; i <= 18; i++) {
+                let zone = zones[i] || { class: "text-gray-500", bgClass: "" };
+                let playerName = registeredPlayers[i - 1];
+                tableHtml += `
+                <tr class="hover:bg-gray-800/60 transition duration-150 ${zone.bgClass}">
+                    <td class="px-2 py-3 text-center font-bold ${zone.class}">${i}</td>
+                    <td class="px-2 py-3 max-w-[120px] md:max-w-xs truncate edit-name text-white" contenteditable="false" data-player-id="${i}">${playerName}</td>
+                    <td class="px-2 py-3 text-center calc-mp text-gray-300">0</td>
+                    <td class="px-2 py-3 text-center text-green-300 edit-w" contenteditable="false">0</td>
+                    <td class="px-2 py-3 text-center text-yellow-300 edit-d" contenteditable="false">0</td>
+                    <td class="px-2 py-3 text-center text-red-300 edit-l" contenteditable="false">0</td>
+                    <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-gf" contenteditable="false">0</td>
+                    <td class="px-2 py-3 text-center text-gray-400 hidden sm:table-cell edit-ga" contenteditable="false">0</td>
+                    <td class="px-2 py-3 text-center calc-gd text-gray-300">0</td>
+                    <td class="px-3 py-3 text-center font-bold text-white text-sm md:text-base calc-pts">0</td>
+                </tr>`;
+            }
+            tbody.innerHTML = tableHtml;
+
+            const totalTeams = 18;
+            let teams = Array.from({length: totalTeams}, (_, i) => i + 1);
+            let fixturesHtml = '';
+
+            for (let round = 1; round <= 17; round++) {
+                fixturesHtml += `<div id="md-${round}" class="matchday-group ${round === 1 ? '' : 'hidden'} space-y-3">`;
+                
+                for (let matchIdx = 0; matchIdx < totalTeams / 2; matchIdx++) {
+                    let home = teams[matchIdx];
+                    let away = teams[totalTeams - 1 - matchIdx];
+                    
+                    if (round % 2 === 0) {
+                        let temp = home; home = away; away = temp;
+                    }
+
+                    fixturesHtml += `
+                    <div class="p-3 bg-gray-900/60 rounded-lg border border-gray-800 flex flex-col gap-1.5">
+                        <div class="flex justify-between text-[9px] text-gray-500 font-bold uppercase tracking-wider">
+                            <span>ROUND ${round} • MATCH ${matchIdx + 1}</span>
+                            <span class="edit-status text-yellow-500" contenteditable="false">UPCOMING</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex-1 text-xs font-semibold truncate text-white edit-home-name" contenteditable="false" data-team-id="${home}">${registeredPlayers[home - 1]}</div>
+                            <div class="flex items-center bg-black/40 rounded border border-gray-700 px-2 py-1 text-xs font-bold gap-1">
+                                <span class="w-5 text-center text-green-400 edit-score-h" contenteditable="false">-</span>
+                                <span class="text-gray-600">:</span>
+                                <span class="w-5 text-center text-green-400 edit-score-a" contenteditable="false">-</span>
+                            </div>
+                            <div class="flex-1 text-right text-xs font-semibold truncate text-white edit-away-name" contenteditable="false" data-team-id="${away}">${registeredPlayers[away - 1]}</div>
+                        </div>
+                    </div>`;
+                }
+                fixturesHtml += `</div>`;
+                teams.splice(1, 0, teams.pop());
+            }
+            fixturesRoot.innerHTML = fixturesHtml;
+        }
+
+        function bindNameSync() {
+            document.querySelectorAll('#league-table-body .edit-name').forEach(cell => {
+                const playerId = cell.getAttribute('data-player-id');
+                cell.addEventListener('input', () => {
+                    const newName = cell.innerText.trim() || `Player ${playerId}`;
+                    document.querySelectorAll(`[data-team-id="${playerId}"]`).forEach(fixtureCell => {
+                        fixtureCell.innerText = newName;
+                    });
+                });
+            });
+        }
+
+        function bindAutoCalc() {
+            document.querySelectorAll('#league-table-body tr').forEach(row => {
+                const wCell = row.querySelector('.edit-w');
+                const dCell = row.querySelector('.edit-d');
+                const lCell = row.querySelector('.edit-l');
+                const gfCell = row.querySelector('.edit-gf');
+                const gaCell = row.querySelector('.edit-ga');
+                const mpCell = row.querySelector('.calc-mp');
+                const gdCell = row.querySelector('.calc-gd');
+                const ptsCell = row.querySelector('.calc-pts');
+
+                const calculate = () => {
+                    const w = parseInt(wCell.innerText) || 0;
+                    const d = parseInt(dCell.innerText) || 0;
+                    const l = parseInt(lCell.innerText) || 0;
+                    const gf = parseInt(gfCell.innerText) || 0;
+                    const ga = parseInt(gaCell.innerText) || 0;
+
+                    mpCell.innerText = w + d + l;
+                    const gd = gf - ga;
+                    gdCell.innerText = gd > 0 ? "+" + gd : gd;
+                    ptsCell.innerText = (w * 3) + (d * 1);
+                };
+
+                [wCell, dCell, lCell, gfCell, gaCell].forEach(cell => {
+                    cell.addEventListener('input', calculate);
+                    cell.addEventListener('keypress', function(e) {
+                        if (isNaN(String.fromCharCode(e.which))) e.preventDefault();
+                    });
+                });
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!document.body.classList.contains('layout-initialized')) {
+                setupInitialLayout();
+                document.body.classList.add('layout-initialized');
+            }
+            bindNameSync();
+            bindAutoCalc();
+        });
+
+        function openAdminAuthModal() {
+            document.getElementById('adminAuthModal').classList.remove('hidden');
+            document.getElementById('adminPasswordInput').focus();
+            document.getElementById('authErrorMessage').classList.add('hidden');
+        }
+
+        function closeAdminAuthModal() {
+            document.getElementById('adminAuthModal').classList.add('hidden');
+            document.getElementById('adminPasswordInput').value = '';
+        }
+
+        function submitAdminAuth() {
+            const passwordInputValue = document.getElementById('adminPasswordInput').value;
+            const errorContainer = document.getElementById('authErrorMessage');
+            
+            if (passwordInputValue === 'EDN2026') {
+                closeAdminAuthModal();
+                const adminPanel = document.getElementById('admin-panel');
+                adminPanel.classList.remove('hidden');
+                adminPanel.classList.add('flex');
+                
+                document.querySelectorAll('.edit-name, .edit-w, .edit-d, .edit-l, .edit-gf, .edit-ga, .edit-home-name, .edit-away-name, .edit-score-h, .edit-score-a, .edit-status').forEach(cell => {
+                    cell.contentEditable = "true";
+                });
+                adminPanel.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                errorContainer.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('adminPasswordInput').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') submitAdminAuth();
+        });
+
+        function exportHTML() {
+            document.getElementById('matchday-select').value = "md-1";
+            switchMatchday();
+
+            const adminPanel = document.getElementById('admin-panel');
+            adminPanel.classList.remove('flex');
+            adminPanel.classList.add('hidden');
+            
+            document.querySelectorAll('.edit-name, .edit-w, .edit-d, .edit-l, .edit-gf, .edit-ga, .edit-home-name, .edit-away-name, .edit-score-h, .edit-score-a, .edit-status').forEach(cell => {
+                cell.contentEditable = "false";
+            });
+
+            const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            adminPanel.classList.remove('hidden');
+            adminPanel.classList.add('flex');
+            document.querySelectorAll('.edit-name, .edit-w, .edit-d, .edit-l, .edit-gf, .edit-ga, .edit-home-name, .edit-away-name, .edit-score-h, .edit-score-a, .edit-status').forEach(cell => {
+                cell.contentEditable = "true";
+            });
+
+            alert("File downloaded successfully! Run push.bat to deploy.");
+        }
+    </script>
+
+
+</body></html>
