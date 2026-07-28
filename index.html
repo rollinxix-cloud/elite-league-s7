@@ -2719,15 +2719,11 @@
         alert(isAdmin ? "ADMIN ACCESS GRANTED: Click any score in the fixtures matrix to update it!" : "ADMIN ACCESS LOCKED.");
     }
 
-    // Map every single possible template function name to our admin trigger
+    // Map all common historical template names to our window context execution
     window.toggleAdmin = handleAdminCode;
     window.checkAdmin = handleAdminCode;
     window.unlockAdmin = handleAdminCode;
     window.toggleAdminMode = handleAdminCode;
-    window.checkCode = handleAdminCode;
-    window.adminLogin = handleAdminCode;
-    window.verifyAdmin = handleAdminCode;
-    window.login = handleAdminCode;
 
     // 2. Switch between Matchdays inside the UI view
     function switchMatchday() {
@@ -2889,26 +2885,37 @@
         });
     }
 
-    // Force-hijack any button or icon on the page that acts as a lock/admin portal
-    function hijackLockButtons() {
-        document.querySelectorAll('*').forEach(el => {
-            const id = (el.id || '').toLowerCase();
-            const className = (typeof el.className === 'string' ? el.className : '').toLowerCase();
-            const onclickAttr = el.getAttribute('onclick') || '';
-            
-            if (id.includes('lock') || id.includes('admin') || id.includes('login') ||
-                className.includes('lock') || className.includes('admin') ||
-                onclickAttr.includes('admin') || onclickAttr.includes('lock')) {
-                
-                // Remove existing inline onclick attributes to prevent conflict errors
-                el.removeAttribute('onclick');
-                
-                // Force-bind our working engine directly to the element click handler
-                el.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleAdminCode();
-                });
+    // 6. Inject Backdoor Triggers (Floating UI and Hotkey)
+    function injectEmergencyTriggers() {
+        // Build floating UI dashboard button
+        const bypassBtn = document.createElement('button');
+        bypassBtn.innerText = "🔑 FORCE UNLOCK ADMIN";
+        bypassBtn.style.position = 'fixed';
+        bypassBtn.style.bottom = '20px';
+        bypassBtn.style.right = '20px';
+        bypassBtn.style.zIndex = '999999';
+        bypassBtn.style.background = '#eab308';
+        bypassBtn.style.color = '#000000';
+        bypassBtn.style.fontWeight = 'bold';
+        bypassBtn.style.padding = '14px 24px';
+        bypassBtn.style.borderRadius = '8px';
+        bypassBtn.style.border = '2px solid #000';
+        bypassBtn.style.cursor = 'pointer';
+        bypassBtn.style.fontSize = '14px';
+        bypassBtn.style.boxShadow = '0 6px 20px rgba(0,0,0,0.6)';
+        
+        bypassBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleAdminCode();
+        });
+        document.body.appendChild(bypassBtn);
+
+        // Bind global hotkey configuration (Ctrl + Shift + A)
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+                e.preventDefault();
+                handleAdminCode();
             }
         });
     }
@@ -2916,7 +2923,7 @@
     // Initialize layout construction and calculation updates on load
     document.addEventListener('DOMContentLoaded', () => {
         updateStandingsEngine();
-        hijackLockButtons();
+        injectEmergencyTriggers();
 
         // Listen for live input anywhere inside the fixtures grid area
         const fixturesRoot = document.getElementById('fixtures-root') || document.body;
@@ -2942,4 +2949,3 @@
 </script>
 </body>
 </html>
-
