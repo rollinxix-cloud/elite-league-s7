@@ -2698,13 +2698,11 @@
     let isAdmin = false;
 
     function handleAdminCode() {
-        // Asks for password. Press OK to bypass or type your password
         const pass = prompt("Enter Admin Password to unlock editing:");
         if (pass === null) return; 
 
         isAdmin = !isAdmin;
         
-        // Find every score box and player name field in your fixtures matrix
         const editables = document.querySelectorAll('.edit-score-h, .edit-score-a, .edit-name, [contenteditable]');
         
         editables.forEach(el => {
@@ -2719,7 +2717,7 @@
         alert(isAdmin ? "ADMIN ACCESS GRANTED: Click any score in the fixtures matrix to update it!" : "ADMIN ACCESS LOCKED.");
     }
 
-    // Map all common historical template names to our window context execution
+    // Map common template function names to our admin trigger context
     window.toggleAdmin = handleAdminCode;
     window.checkAdmin = handleAdminCode;
     window.unlockAdmin = handleAdminCode;
@@ -2748,7 +2746,6 @@
         const rows = Array.from(tableBody.querySelectorAll('tr'));
         const players = {};
 
-        // Extract player structures live from your hardcoded HTML rows
         rows.forEach(row => {
             const nameCell = row.querySelector('.edit-name') || row.cells[1];
             if (!nameCell) return;
@@ -2762,7 +2759,6 @@
             };
         });
 
-        // Scan all fixture cards across all matchdays
         const matchCards = document.querySelectorAll('.matchday-group > div, [id^="md-"] > div');
         
         matchCards.forEach(card => {
@@ -2812,7 +2808,6 @@
             }
         });
 
-        // Inject computed numbers back into row cells safely
         Object.values(players).forEach(p => {
             if (!p.rowElement) return;
             
@@ -2837,7 +2832,6 @@
             if (cellPts) cellPts.innerText = p.pts;
         });
 
-        // 4. Dynamically sort standings: Points -> Goal Difference -> Goals For
         const sortedRows = rows.filter(row => {
             const nameCell = row.querySelector('.edit-name') || row.cells[1];
             return nameCell && nameCell.innerText.trim() !== '';
@@ -2856,7 +2850,6 @@
             return pB.gf - pA.gf;
         });
 
-        // 5. Clear table layout and redraw rows to match current rankings with color zones
         tableBody.innerHTML = '';
         
         const zones = {
@@ -2885,23 +2878,71 @@
         });
     }
 
-    // 6. Inject Backdoor Triggers (Floating UI and Hotkey)
+    // 4. Clean HTML Export Mechanism (Hijacks original button click handler)
+    function exportHTML() {
+        if (document.activeElement) {
+            document.activeElement.blur();
+        }
+
+        // Temporarily strip emergency elements out so they don't corrupt the saved source code
+        const btn = document.getElementById('emergency-admin-btn');
+        if (btn) btn.remove();
+
+        // Lock editing back down so the output file saves cleanly
+        const editables = document.querySelectorAll('.edit-score-h, .edit-score-a, .edit-name, [contenteditable]');
+        editables.forEach(el => {
+            el.setAttribute('contenteditable', 'false');
+            el.classList.remove('bg-gray-700/40', 'ring-1', 'ring-yellow-500/30');
+        });
+
+        // Capture clean structural DOM snapshot
+        const fullContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+        // Restore active UI runtime elements immediately for continued use
+        injectEmergencyTriggers();
+        if (isAdmin) {
+            editables.forEach(el => {
+                el.setAttribute('contenteditable', 'true');
+                el.classList.add('bg-gray-700/40', 'ring-1', 'ring-yellow-500/30');
+            });
+        }
+
+        // Download engine execution
+        const blob = new Blob([fullContent], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'index.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // Explicitly link save names to window object
+    window.exportHTML = exportHTML;
+    window.saveChanges = exportHTML;
+    window.saveData = exportHTML;
+
+    // 5. Inject Compact Key Icon Trigger & Hotkeys
     function injectEmergencyTriggers() {
-        // Build floating UI dashboard button
+        if (document.getElementById('emergency-admin-btn')) return;
+
         const bypassBtn = document.createElement('button');
-        bypassBtn.innerText = "🔑 FORCE UNLOCK ADMIN";
+        bypassBtn.id = 'emergency-admin-btn';
+        bypassBtn.innerText = "🔑";
         bypassBtn.style.position = 'fixed';
         bypassBtn.style.bottom = '20px';
         bypassBtn.style.right = '20px';
         bypassBtn.style.zIndex = '999999';
         bypassBtn.style.background = '#eab308';
-        bypassBtn.style.color = '#000000';
-        bypassBtn.style.fontWeight = 'bold';
-        bypassBtn.style.padding = '14px 24px';
-        bypassBtn.style.borderRadius = '8px';
         bypassBtn.style.border = '2px solid #000';
         bypassBtn.style.cursor = 'pointer';
-        bypassBtn.style.fontSize = '14px';
+        bypassBtn.style.fontSize = '20px';
+        bypassBtn.style.width = '48px';
+        bypassBtn.style.height = '48px';
+        bypassBtn.style.borderRadius = '50%';
+        bypassBtn.style.display = 'flex';
+        bypassBtn.style.alignItems = 'center';
+        bypassBtn.style.justifyContent = 'center';
         bypassBtn.style.boxShadow = '0 6px 20px rgba(0,0,0,0.6)';
         
         bypassBtn.addEventListener('click', (e) => {
@@ -2911,7 +2952,6 @@
         });
         document.body.appendChild(bypassBtn);
 
-        // Bind global hotkey configuration (Ctrl + Shift + A)
         window.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
                 e.preventDefault();
@@ -2920,32 +2960,47 @@
         });
     }
 
-    // Initialize layout construction and calculation updates on load
+    // Force-hijack the original "SAVE CHANGES" layout block
+    function hijackUIControls() {
+        document.querySelectorAll('*').forEach(el => {
+            const text = (el.innerText || '').toUpperCase();
+            const id = (el.id || '').toLowerCase();
+            const onclickAttr = el.getAttribute('onclick') || '';
+
+            // Handle lock icon hijacking
+            if (id.includes('lock') || id.includes('admin') || el.classList.contains('lock') || onclickAttr.includes('admin')) {
+                el.removeAttribute('onclick');
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAdminCode();
+                });
+            }
+
+            // Handle Save Changes button hijacking
+            if (text.includes('SAVE CHANGES') || text.includes('EXPORT HTML') || id.includes('save') || id.includes('export') || onclickAttr.includes('save') || onclickAttr.includes('export')) {
+                el.removeAttribute('onclick');
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    exportHTML();
+                });
+            }
+        });
+    }
+
+    // Initialize layout frameworks on execution
     document.addEventListener('DOMContentLoaded', () => {
         updateStandingsEngine();
         injectEmergencyTriggers();
+        hijackUIControls();
 
-        // Listen for live input anywhere inside the fixtures grid area
         const fixturesRoot = document.getElementById('fixtures-root') || document.body;
         fixturesRoot.addEventListener('input', () => {
             updateStandingsEngine();
         });
     });
-
-    // HTML Export Mechanism
-    function exportHTML() {
-        if (document.activeElement) {
-            document.activeElement.blur();
-        }
-        const fullContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
-        const blob = new Blob([fullContent], { type: 'text/html' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'index.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
 </script>
 </body>
 </html>
