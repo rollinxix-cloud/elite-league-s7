@@ -2717,12 +2717,6 @@
         alert(isAdmin ? "ADMIN ACCESS GRANTED: Click any score in the fixtures matrix to update it!" : "ADMIN ACCESS LOCKED.");
     }
 
-    // Map common template function names to our admin trigger context
-    window.toggleAdmin = handleAdminCode;
-    window.checkAdmin = handleAdminCode;
-    window.unlockAdmin = handleAdminCode;
-    window.toggleAdminMode = handleAdminCode;
-
     // 2. Switch between Matchdays inside the UI view
     function switchMatchday() {
         const select = document.getElementById('matchday-select');
@@ -2878,28 +2872,27 @@
         });
     }
 
-    // 4. Clean HTML Export Mechanism (Hijacks original button click handler)
+    // 4. Clean HTML Export Mechanism
     function exportHTML() {
         if (document.activeElement) {
             document.activeElement.blur();
         }
 
-        // Temporarily strip emergency elements out so they don't corrupt the saved source code
-        const btn = document.getElementById('emergency-admin-btn');
-        if (btn) btn.remove();
+        // Drop the floating dock completely before generating the text string so it stays out of the saved code
+        const panel = document.getElementById('admin-floating-dock');
+        if (panel) panel.remove();
 
-        // Lock editing back down so the output file saves cleanly
+        // Drop editing outlines so file saves fresh
         const editables = document.querySelectorAll('.edit-score-h, .edit-score-a, .edit-name, [contenteditable]');
         editables.forEach(el => {
             el.setAttribute('contenteditable', 'false');
             el.classList.remove('bg-gray-700/40', 'ring-1', 'ring-yellow-500/30');
         });
 
-        // Capture clean structural DOM snapshot
         const fullContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
 
-        // Restore active UI runtime elements immediately for continued use
-        injectEmergencyTriggers();
+        // Re-inject UI management elements back into local session immediately
+        injectAdminDock();
         if (isAdmin) {
             editables.forEach(el => {
                 el.setAttribute('contenteditable', 'true');
@@ -2907,7 +2900,7 @@
             });
         }
 
-        // Download engine execution
+        // Trigger native browser download pipeline
         const blob = new Blob([fullContent], { type: 'text/html' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -2917,84 +2910,76 @@
         document.body.removeChild(a);
     }
 
-    // Explicitly link save names to window object
-    window.exportHTML = exportHTML;
-    window.saveChanges = exportHTML;
-    window.saveData = exportHTML;
+    // 5. Injected Floating Management Dock Construction
+    function injectAdminDock() {
+        if (document.getElementById('admin-floating-dock')) return;
 
-    // 5. Inject Compact Key Icon Trigger & Hotkeys
-    function injectEmergencyTriggers() {
-        if (document.getElementById('emergency-admin-btn')) return;
+        const dock = document.createElement('div');
+        dock.id = 'admin-floating-dock';
+        dock.style.position = 'fixed';
+        dock.style.bottom = '25px';
+        dock.style.right = '25px';
+        dock.style.zIndex = '999999';
+        dock.style.display = 'flex';
+        dock.style.gap = '12px';
 
-        const bypassBtn = document.createElement('button');
-        bypassBtn.id = 'emergency-admin-btn';
-        bypassBtn.innerText = "🔑";
-        bypassBtn.style.position = 'fixed';
-        bypassBtn.style.bottom = '20px';
-        bypassBtn.style.right = '20px';
-        bypassBtn.style.zIndex = '999999';
-        bypassBtn.style.background = '#eab308';
-        bypassBtn.style.border = '2px solid #000';
-        bypassBtn.style.cursor = 'pointer';
-        bypassBtn.style.fontSize = '20px';
-        bypassBtn.style.width = '48px';
-        bypassBtn.style.height = '48px';
-        bypassBtn.style.borderRadius = '50%';
-        bypassBtn.style.display = 'flex';
-        bypassBtn.style.alignItems = 'center';
-        bypassBtn.style.justifyContent = 'center';
-        bypassBtn.style.boxShadow = '0 6px 20px rgba(0,0,0,0.6)';
-        
-        bypassBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        // Helper style function to keep dock looking uniform
+        const applyStyle = (btn, bgColor) => {
+            btn.style.background = bgColor;
+            btn.style.border = '2px solid #111827';
+            btn.style.cursor = 'pointer';
+            btn.style.fontSize = '22px';
+            btn.style.width = '52px';
+            btn.style.height = '52px';
+            btn.style.borderRadius = '50%';
+            btn.style.display = 'flex';
+            btn.style.alignItems = 'center';
+            btn.style.justifyContent = 'center';
+            btn.style.boxShadow = '0 10px 25px rgba(0,0,0,0.7)';
+            btn.style.transition = 'transform 0.1s ease';
+            btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.08)');
+            btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
+        };
+
+        // Key Control Button (Unlock Matrix)
+        const keyBtn = document.createElement('button');
+        keyBtn.innerText = "🔑";
+        keyBtn.title = "Toggle Admin Edit Mode";
+        applyStyle(keyBtn, '#eab308');
+        keyBtn.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
             handleAdminCode();
         });
-        document.body.appendChild(bypassBtn);
 
+        // Save Control Button (Export File Output)
+        const saveBtn = document.createElement('button');
+        saveBtn.innerText = "💾";
+        saveBtn.title = "Save Standings & Download index.html";
+        applyStyle(saveBtn, '#22c55e');
+        saveBtn.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            exportHTML();
+        });
+
+        dock.appendChild(keyBtn);
+        dock.appendChild(saveBtn);
+        document.body.appendChild(dock);
+
+        // Backup system hotkey bindings
         window.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
-                e.preventDefault();
-                handleAdminCode();
+                e.preventDefault(); handleAdminCode();
+            }
+            if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
+                e.preventDefault(); exportHTML();
             }
         });
     }
 
-    // Force-hijack the original "SAVE CHANGES" layout block
-    function hijackUIControls() {
-        document.querySelectorAll('*').forEach(el => {
-            const text = (el.innerText || '').toUpperCase();
-            const id = (el.id || '').toLowerCase();
-            const onclickAttr = el.getAttribute('onclick') || '';
-
-            // Handle lock icon hijacking
-            if (id.includes('lock') || id.includes('admin') || el.classList.contains('lock') || onclickAttr.includes('admin')) {
-                el.removeAttribute('onclick');
-                el.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleAdminCode();
-                });
-            }
-
-            // Handle Save Changes button hijacking
-            if (text.includes('SAVE CHANGES') || text.includes('EXPORT HTML') || id.includes('save') || id.includes('export') || onclickAttr.includes('save') || onclickAttr.includes('export')) {
-                el.removeAttribute('onclick');
-                el.style.cursor = 'pointer';
-                el.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    exportHTML();
-                });
-            }
-        });
-    }
-
-    // Initialize layout frameworks on execution
+    // Initialize layout scripts on load execution
     document.addEventListener('DOMContentLoaded', () => {
         updateStandingsEngine();
-        injectEmergencyTriggers();
-        hijackUIControls();
+        injectAdminDock();
 
         const fixturesRoot = document.getElementById('fixtures-root') || document.body;
         fixturesRoot.addEventListener('input', () => {
@@ -3004,3 +2989,4 @@
 </script>
 </body>
 </html>
+
